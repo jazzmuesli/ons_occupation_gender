@@ -28,3 +28,24 @@ data$y01_17_change=1/((as.numeric(data$total.male.2001)+as.numeric(data$total.fe
 data$occupation_text=data$occupation_text.male.2017
 View(data[!is.na(data$y01_17_female_change),grep("occupation$|occupation_text$|ratio|change|^total",names(data))])
 write.csv(data[!is.na(data$y01_17_female_change),grep("occupation$|occupation_text$|ratio|change|^total",names(data))],"result.csv")
+data=data[!is.na(data$y01_17_female_change),]
+setwd("~/Documents/github/ons_occupation_gender/")
+download.file("https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/grossweeklyearningsbyoccupationearn06/current/earn06feb2018.xls","earn06feb2018.xls")
+
+read_weekly_salary=function(gender) {
+  data=readxl::read_xls("earn06feb2018.xls",sheet = paste0(gender," - Weekly Earnings"))
+  occupations=as.character(data[5,2:ncol(data)])
+  x=data.frame(data[36:nrow(data),])
+  names(x)=c("date",occupations)
+  x=x[grep("^[a-zA-Z]{3}-",x$date),]
+  x$date=as.Date(strptime(format="%d %b %Y", gsub(".*?-(.*)","01 \\1", x$date)))
+  x[,occupations]=sapply(x[,occupations],as.numeric)
+  x
+}
+male=read_weekly_salary("Men")
+female=read_weekly_salary("Women")
+ratio=male[,2:ncol(male)] / female[,2:ncol(female)]
+ratio$date = male[,"date"]
+View(ratio)
+ggplot(melt(ratio[,grep("date|profession|manager|All",names(ratio),ignore.case = T)],"date"),aes(x=date,y=value,colour=variable))+geom_point()+stat_smooth()+ggtitle("Male/female weekly earnings by occupation")
+ggplot(melt(ratio[,grep("profession|manager|All",names(ratio),invert = T, ignore.case = T)],"date"),aes(x=date,y=value,colour=variable))+geom_point()+stat_smooth()+ggtitle("Male/female weekly earnings by occupation")
