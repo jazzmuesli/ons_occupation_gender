@@ -27,4 +27,4 @@ data$y01_17_female_change=1/(data$female_ratio.2001/data$female_ratio.2017)
 data$y01_17_change=1/((as.numeric(data$total.male.2001)+as.numeric(data$total.female.2001))/(as.numeric(data$total.male.2017)+as.numeric(data$total.female.2017)))
 data$occupation_text=data$occupation_text.male.2017
 View(data[!is.na(data$y01_17_female_change),grep("occupation$|occupation_text$|ratio|change|^total",names(data))])
-write.csv(data,"result.csv")
+write.csv(data[!is.na(data$y01_17_female_change),grep("occupation$|occupation_text$|ratio|change|^total",names(data))],"result.csv")
